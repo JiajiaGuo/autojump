@@ -16,6 +16,22 @@ else:
     from itertools import ifilter
     from itertools import imap
 
+def match_child(needles, haystack, ignore_case=False):
+    needle_list = list(imap(re.escape, needles)) if is_python3() else imap(re.escape, needles)
+    regex_no_sep = '[^' + os.sep + ']*'
+    regex_no_sep_end = regex_no_sep + '$'
+    middle_needles = needle_list[1: -1]
+    regex_middle_needles = '.*' + '.*'.join(middle_needles) + '.*' if len(middle_needles) > 0 else '.*'
+    regex_needle = '^' + needle_list[0] + regex_no_sep + os.sep + regex_middle_needles + os.sep + regex_no_sep + needle_list[-1] + regex_no_sep_end
+    #/home/draw/dev[^/]/.*/
+    regex_flags = re.IGNORECASE | re.UNICODE if ignore_case else re.UNICODE
+    found = lambda haystack: re.search(
+        regex_needle,
+        haystack.path,
+        flags=regex_flags,
+    )
+    return ifilter(found, haystack)
+
 
 def match_anywhere(needles, haystack, ignore_case=False):
     """
